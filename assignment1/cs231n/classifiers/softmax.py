@@ -3,6 +3,7 @@ import numpy as np
 from random import shuffle
 from past.builtins import xrange
 
+
 def softmax_loss_naive(W, X, y, reg):
     """
     Softmax loss function, naive implementation (with loops)
@@ -33,7 +34,25 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    scores = X.dot(W)
+    N = X.shape[0]
+    C = W.shape[1]
+
+    # softmax
+    for i in range(N):
+        f = scores[i] - np.max(scores[i])  # to avoidavoid numerical instability
+        softmax = np.exp(f) / np.sum(np.exp(f))
+        loss += - np.log(softmax[y[i]])
+
+        # grads
+        for j in range(C):
+            dW[:, j] += softmax[j] * X[i]
+        dW[:, y[i]] -= X[i]
+
+    loss /= N
+    dW /= N
+    loss += reg * np.sum(W * W)
+    dW += reg * 2 * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -49,7 +68,6 @@ def softmax_loss_vectorized(W, X, y, reg):
     # Initialize the loss and gradient to zero.
     loss = 0.0
     dW = np.zeros_like(W)
-
     #############################################################################
     # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
     # Store the loss in loss and the gradient in dW. If you are not careful     #
@@ -58,7 +76,23 @@ def softmax_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N = X.shape[0]
+    scores = X.dot(W)
+    scores -= np.max(scores, axis=1, keepdims=True)
+
+    # Softmax Loss
+    softmax_denom = np.exp(scores).sum(axis=1, keepdims=True)
+    softmax = np.exp(scores) / softmax_denom
+    loss = np.sum(-np.log(softmax[np.arange(N), y]))
+
+    # grads
+    softmax[np.arange(N), y] -= 1
+    dW = X.T.dot(softmax)
+
+    loss /= N
+    dW /= N
+    loss += reg * np.sum(W * W)
+    dW += reg * 2 * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
